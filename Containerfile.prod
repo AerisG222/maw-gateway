@@ -1,0 +1,16 @@
+FROM nginx:alpine
+
+RUN rm /etc/nginx/conf.d/*
+
+COPY etc/nginx/proxy.conf                  /etc/nginx
+COPY etc/nginx/tls.conf                    /etc/nginx
+COPY etc/nginx/nginx.conf                  /etc/nginx
+COPY etc/nginx/conf.d/prod.maw-api.conf    /etc/nginx/conf.d/maw-api.conf
+COPY etc/nginx/conf.d/prod.maw-auth.conf   /etc/nginx/conf.d/maw-auth.conf
+COPY etc/nginx/conf.d/prod.maw-files.conf  /etc/nginx/conf.d/maw-files.conf
+COPY etc/nginx/conf.d/prod.maw-photos.conf /etc/nginx/conf.d/maw-photos.conf
+COPY etc/nginx/conf.d/prod.maw-www.conf    /etc/nginx/conf.d/maw-www.conf
+
+CMD /bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'
+
+EXPOSE 80, 443
