@@ -1,5 +1,7 @@
 FROM nginx:alpine
 
+RUN apk --no-cache add bash
+
 RUN rm /etc/nginx/conf.d/*
 
 COPY etc/nginx/proxy.conf                  /etc/nginx
@@ -12,8 +14,8 @@ COPY etc/nginx/conf.d/prod.maw-files.conf  /etc/nginx/conf.d/maw-files.conf
 COPY etc/nginx/conf.d/prod.maw-photos.conf /etc/nginx/conf.d/maw-photos.conf
 COPY etc/nginx/conf.d/prod.maw-www.conf    /etc/nginx/conf.d/maw-www.conf
 
-COPY _run_prod.sh .
+COPY _run_prod.sh /usr/local/bin
 
-CMD [ "./_run_prod.sh" ]
+CMD [ "_run_prod.sh" ]
 
 EXPOSE 80, 443
