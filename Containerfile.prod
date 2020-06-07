@@ -4,6 +4,7 @@ RUN rm /etc/nginx/conf.d/*
 
 COPY etc/nginx/proxy.conf                  /etc/nginx
 COPY etc/nginx/tls.conf                    /etc/nginx
+COPY etc/nginx/tls-stapling.conf           /etc/nginx
 COPY etc/nginx/nginx.conf                  /etc/nginx
 COPY etc/nginx/conf.d/prod.maw-api.conf    /etc/nginx/conf.d/maw-api.conf
 COPY etc/nginx/conf.d/prod.maw-auth.conf   /etc/nginx/conf.d/maw-auth.conf
