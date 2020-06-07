@@ -13,5 +13,3 @@
 tools
 docs
 *.md
-src/maw_database_pg
-src/idsrv_database_pg
