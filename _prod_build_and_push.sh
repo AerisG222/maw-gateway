@@ -6,3 +6,8 @@ buildah bud -f Containerfile.prod -t maw-gateway --iidfile "${IID_FILE}"
 IID=$(cat "${IID_FILE}")
 buildah push --creds "${DH_USER}:${DH_PASS}" "${IID}" docker://aerisg222/maw-gateway:"${TAG}"
 buildah push --creds "${DH_USER}:${DH_PASS}" "${IID}" docker://aerisg222/maw-gateway:latest
+
+buildah bud -f Containerfile.dev -t maw-gateway-dev --iidfile "${IID_FILE}"
+IID=$(cat "${IID_FILE}")
+buildah push --creds "${DH_USER}:${DH_PASS}" "${IID}" docker://aerisg222/maw-gateway-dev:"${TAG}"
+buildah push --creds "${DH_USER}:${DH_PASS}" "${IID}" docker://aerisg222/maw-gateway-dev:latest
