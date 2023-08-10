@@ -4,10 +4,12 @@ RUN apk --no-cache add bash
 
 RUN rm /etc/nginx/conf.d/*
 
-COPY etc/nginx/prod.proxy.conf             /etc/nginx/proxy.conf
+COPY etc/nginx/cache-file-descriptors.conf /etc/nginx
+COPY etc/nginx/compression.conf            /etc/nginx
+COPY etc/nginx/nginx.conf                  /etc/nginx
 COPY etc/nginx/tls.conf                    /etc/nginx
 COPY etc/nginx/tls-stapling.conf           /etc/nginx
-COPY etc/nginx/nginx.conf                  /etc/nginx
+COPY etc/nginx/prod.proxy.conf             /etc/nginx/proxy.conf
 COPY etc/nginx/conf.d/prod.maw-api.conf    /etc/nginx/conf.d/maw-api.conf
 COPY etc/nginx/conf.d/prod.maw-auth.conf   /etc/nginx/conf.d/maw-auth.conf
 COPY etc/nginx/conf.d/prod.maw-files.conf  /etc/nginx/conf.d/maw-files.conf

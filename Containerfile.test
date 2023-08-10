@@ -2,9 +2,11 @@ FROM nginx:alpine
 
 RUN rm /etc/nginx/conf.d/*
 
-COPY etc/nginx/test.proxy.conf             /etc/nginx/proxy.conf
-COPY etc/nginx/tls.conf                    /etc/nginx
+COPY etc/nginx/cache-file-descriptors.conf /etc/nginx
+COPY etc/nginx/compression.conf            /etc/nginx
 COPY etc/nginx/nginx.conf                  /etc/nginx
+COPY etc/nginx/tls.conf                    /etc/nginx
+COPY etc/nginx/test.proxy.conf             /etc/nginx/proxy.conf
 COPY etc/nginx/conf.d/test.maw-api.conf    /etc/nginx/conf.d/maw-api.conf
 COPY etc/nginx/conf.d/test.maw-auth.conf   /etc/nginx/conf.d/maw-auth.conf
 COPY etc/nginx/conf.d/test.maw-files.conf  /etc/nginx/conf.d/maw-files.conf
