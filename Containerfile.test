@@ -15,4 +15,5 @@ COPY etc/nginx/conf.d/test.maw-www.conf    /etc/nginx/conf.d/maw-www.conf
 
 CMD [ "nginx", "-g", "daemon off;" ]
 
-EXPOSE 8080, 8443
+EXPOSE 8080
+EXPOSE 8443

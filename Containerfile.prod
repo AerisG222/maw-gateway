@@ -20,4 +20,5 @@ COPY _run_prod.sh /usr/local/bin
 
 CMD [ "_run_prod.sh" ]
 
-EXPOSE 80, 443
+EXPOSE 80
+EXPOSE 443
