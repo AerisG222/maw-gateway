@@ -1,0 +1,3 @@
+# python env for deployment
+.ansible
+.venv

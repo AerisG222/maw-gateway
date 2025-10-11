@@ -1,0 +1,133 @@
+# narrowly focused ansible deployment playbook for www.mikeandwan.us
+---
+- name: Configure Service Account
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Add Service Account
+      ansible.builtin.user:
+        name: "{{ svcacct_name }}"
+        password: "{{ svcacct_pwd | password_hash('sha512') }}"
+        update_password: always
+        state: present
+
+    # fedora creates a unique subuid range automatically, so need to do this via usermod here
+
+    - name: Enable Linger for Service Account
+      ansible.builtin.command:
+        cmd: loginctl enable-linger "{{ svcacct_name | quote }}"
+
+    - name: Add SSH key to authorized_keys
+      ansible.posix.authorized_key:
+        user: "{{ svcacct_name }}"
+        key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_rsa.pub') }}"
+        state: present
+
+- name: Configure Gateway
+  hosts: webservers
+  remote_user: "{{ svcacct_name }}"
+  vars:
+    pod: pod-maw-gateway
+    img_maw_gateway: "docker.io/aerisg222/maw-gateway:latest"
+    container_gateway: maw-gateway
+    dir_localroot: "{{ lookup('env', 'HOME') }}/maw-gateway/{{ mawenv }}"
+    dir_root: "/home/{{ svcacct_name }}"
+    dir_approot: "{{ dir_root }}/maw-gateway"
+    dir_certs: "{{ dir_approot }}/certs"
+    dir_certbot: "{{ dir_approot }}/certbot"
+    dir_certbot_challenge: "{{ dir_approot }}/certbot-challenge"
+
+  tasks:
+    - name: Create Directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        recurse: true
+        state: directory
+      loop:
+        - "{{ dir_certs }}"
+        - "{{ dir_certbot }}"
+        - "{{ dir_certbot_challenge }}"
+
+    - name: Copy Files
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: u+rw
+      loop:
+        - src: "{{ dir_localroot }}/certs/dh2048.pem"
+          dest: "{{ dir_certs }}"
+
+    - name: Copy Files for Staging (prod certs will come from certbot)
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: u+rw
+      loop:
+        - src: "{{ dir_localroot }}/certs/maw-ca.crt"
+          dest: "{{ dir_certs }}"
+        - src: "{{ dir_localroot }}/certs/maw-media.crt"
+          dest: "{{ dir_certs }}"
+        - src: "{{ dir_localroot }}/certs/maw-media.key"
+          dest: "{{ dir_certs }}"
+        - src: "{{ dir_localroot }}/certs/maw-photos.crt"
+          dest: "{{ dir_certs }}"
+        - src: "{{ dir_localroot }}/certs/maw-photos.key"
+          dest: "{{ dir_certs }}"
+        - src: "{{ dir_localroot }}/certs/maw-www.crt"
+          dest: "{{ dir_certs }}"
+        - src: "{{ dir_localroot }}/certs/maw-www.key"
+          dest: "{{ dir_certs }}"
+      when: mawenv == "staging"
+
+    - name: Pull Container Images
+      containers.podman.podman_image:
+        name: "{{ item }}"
+      loop:
+        - "{{ img_maw_gateway }}"
+
+    - name: Create Pod Quadlet
+      containers.podman.podman_pod:
+        name: "{{ pod }}"
+        state: quadlet
+        userns: "keep-id:uid=1654"
+        ports:
+          - "8000:80"
+          - "8443:443"
+        quadlet_options:
+          - "ServiceName={{ pod }}"
+
+    - name: Create maw-gateway Quadlet
+      containers.podman.podman_container:
+        name: "{{ container_gateway }}"
+        image: "{{ img_maw_gateway }}"
+        state: quadlet
+        read_only: true
+        pod: "{{ pod }}.pod"
+        user: 1654
+        volumes:
+          - "{{ dir_certs }}:/certs:ro,Z"
+          - "{{ dir_certbot }}:/certbot:ro,z"
+          - "{{ dir_certbot_challenge }}:/certbot_challenge:ro,z"
+        quadlet_options:
+          - "AutoUpdate=registry"
+          - "Pull=newer"
+          - "ReadOnly=true"
+          - |
+
+            [Unit]
+            Description=Container for maw-gateway reverse proxy
+
+            [Install]
+            WantedBy=multi-user.target default.target
+
+            [Service]
+            Restart=on-failure
+
+    - name: Start and Enable Pod / Containers
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+        name: "{{ pod }}.service"
+        scope: user
+        enabled: true
+        state: restarted
