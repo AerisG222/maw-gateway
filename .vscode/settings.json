@@ -1,3 +1,24 @@
 {
-    "ansible.python.interpreterPath": "/bin/python"
+    "ansible.python.interpreterPath": "/bin/python",
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#03c860",
+        "activityBar.background": "#03c860",
+        "activityBar.foreground": "#15202b",
+        "activityBar.inactiveForeground": "#15202b99",
+        "activityBarBadge.background": "#9a43fc",
+        "activityBarBadge.foreground": "#e7e7e7",
+        "commandCenter.border": "#e7e7e799",
+        "sash.hoverBorder": "#03c860",
+        "statusBar.background": "#029648",
+        "statusBar.foreground": "#e7e7e7",
+        "statusBarItem.hoverBackground": "#03c860",
+        "statusBarItem.remoteBackground": "#029648",
+        "statusBarItem.remoteForeground": "#e7e7e7",
+        "tab.activeBorder": "#03c860",
+        "titleBar.activeBackground": "#029648",
+        "titleBar.activeForeground": "#e7e7e7",
+        "titleBar.inactiveBackground": "#02964899",
+        "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.color": "029648"
 }
