@@ -1,0 +1,17 @@
+FROM nginx:alpine
+
+RUN rm /etc/nginx/conf.d/*
+
+COPY etc/nginx/cache-file-descriptors.conf    /etc/nginx
+COPY etc/nginx/compression.conf               /etc/nginx
+COPY etc/nginx/nginx.conf                     /etc/nginx
+COPY etc/nginx/tls.conf                       /etc/nginx
+COPY etc/nginx/staging.proxy.conf             /etc/nginx/proxy.conf
+COPY etc/nginx/conf.d/staging.maw-media.conf  /etc/nginx/conf.d/maw-media.conf
+COPY etc/nginx/conf.d/staging.maw-photos.conf /etc/nginx/conf.d/maw-photos.conf
+COPY etc/nginx/conf.d/staging.maw-www.conf    /etc/nginx/conf.d/maw-www.conf
+
+CMD [ "nginx", "-g", "daemon off;" ]
+
+EXPOSE 80
+EXPOSE 443
