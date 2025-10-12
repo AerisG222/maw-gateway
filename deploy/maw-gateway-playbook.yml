@@ -26,7 +26,8 @@
 
 - name: Configure Gateway
   hosts: webservers
-  remote_user: "{{ svcacct_name }}"
+  become: true
+  become_user: "{{ svcacct_name }}"
   vars:
     pod: pod-maw-gateway
     img_maw_gateway: "docker.io/aerisg222/maw-gateway:latest"
