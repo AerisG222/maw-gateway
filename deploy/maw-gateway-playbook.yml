@@ -31,13 +31,15 @@
   vars:
     pod: pod-maw-gateway
     img_maw_gateway: "docker.io/aerisg222/maw-gateway:latest"
+    img_certbot: "docker.io/certbot/certbot:amd64-latest"
     container_gateway: maw-gateway
     dir_localroot: "{{ lookup('env', 'HOME') }}/maw-gateway/{{ mawenv }}"
     dir_root: "/home/{{ svcacct_name }}"
     dir_approot: "{{ dir_root }}/maw-gateway"
     dir_certs: "{{ dir_approot }}/certs"
-    dir_certbot: "{{ dir_approot }}/certbot"
-    dir_certbot_challenge: "{{ dir_approot }}/certbot-challenge"
+    dir_letsencrypt: "{{ dir_approot }}/letsencrypt"
+    dir_certbot: "{{ dir_approot }}/certbot-challenge"
+    dir_systemd: "{{ lookup('env', 'HOME') }}/.config/systemd/user"
 
   tasks:
     - name: Create Directories
@@ -47,8 +49,9 @@
         state: directory
       loop:
         - "{{ dir_certs }}"
+        - "{{ dir_letsencrypt }}"
         - "{{ dir_certbot }}"
-        - "{{ dir_certbot_challenge }}"
+        - "{{ dir_systemd }}"
 
     - name: Copy Files
       ansible.builtin.copy:
@@ -86,6 +89,7 @@
         name: "{{ item }}"
       loop:
         - "{{ img_maw_gateway }}"
+        - "{{ img_certbot }}"
 
     - name: Create Pod Quadlet
       containers.podman.podman_pod:
@@ -108,8 +112,8 @@
         user: 1654
         volumes:
           - "{{ dir_certs }}:/certs:ro,Z"
-          - "{{ dir_certbot }}:/certbot:ro,z"
-          - "{{ dir_certbot_challenge }}:/certbot_challenge:ro,z"
+          - "{{ dir_letsencrypt }}:/etc/letsencrypt:ro,z"
+          - "{{ dir_certbot }}:/var/www/certbot:ro,z"
         quadlet_options:
           - "AutoUpdate=registry"
           - "Pull=newer"
@@ -132,3 +136,20 @@
         scope: user
         enabled: true
         state: restarted
+
+    - name: Create systemd service and timer for certbot renewal job
+      ansible.builtin.template:
+        dest: "{{ dir_systemd }}/{{ item.dest }}"
+        src: "{{ item.src }}"
+        mode: u+rw
+      loop:
+        - { "src": "certbot-renew.service.j2", "dest": "certbot-renew.service" }
+        - { "src": "certbot-renew.timer.j2",   "dest": "certbot-renew.timer" }
+
+    - name: Start and enable certbot job timer
+      ansible.builtin.systemd:
+        name: "certbot-renew.timer"
+        enabled: true
+        state: started
+        scope: user
+        daemon_reload: true
