@@ -39,7 +39,7 @@
     dir_certs: "{{ dir_approot }}/certs"
     dir_letsencrypt: "{{ dir_approot }}/letsencrypt"
     dir_certbot: "{{ dir_approot }}/certbot-challenge"
-    dir_systemd: "{{ lookup('env', 'HOME') }}/.config/systemd/user"
+    dir_systemd: "{{ dir_root }}/.config/systemd/user"
 
   tasks:
     - name: Create Directories
