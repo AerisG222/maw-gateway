@@ -1,0 +1,13 @@
+#!/bin/bash
+
+podman run -it --rm \
+    --pod {{ pod }} \
+    --volume {{ dir_certbot }}:/var/www/certbot:rw,z \
+    --volume {{ dir_letsencrypt }}:/etc/letsencrypt:rw,z \
+        {{ img_certbot }} \
+            certonly \
+            --agree-tos \
+            --webroot \
+            -w /var/www/certbot \
+            -d www.mikeandwan.us \
+            -d mikeandwan.us

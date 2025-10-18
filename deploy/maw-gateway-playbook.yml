@@ -40,6 +40,7 @@
     dir_letsencrypt: "{{ dir_approot }}/letsencrypt"
     dir_certbot: "{{ dir_approot }}/certbot-challenge"
     dir_systemd: "{{ dir_root }}/.config/systemd/user"
+    dir_scripts: "{{ dir_approot }}/scripts"
 
   tasks:
     - name: Create Directories
@@ -52,6 +53,7 @@
         - "{{ dir_letsencrypt }}"
         - "{{ dir_certbot }}"
         - "{{ dir_systemd }}"
+        - "{{ dir_scripts }}"
 
     - name: Copy Files
       ansible.builtin.copy:
@@ -136,6 +138,14 @@
         scope: user
         enabled: true
         state: restarted
+
+    - name: Create certbot initialization script
+      ansible.builtin.template:
+        dest: "{{ dir_scripts }}/{{ item.dest }}"
+        src: "{{ item.src }}"
+        mode: u+rw
+      loop:
+        - { "src": "certbot-init.sh.j2", "dest": "certbot-init.sh" }
 
     - name: Create systemd service and timer for certbot renewal job
       ansible.builtin.template:
