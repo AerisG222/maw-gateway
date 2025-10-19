@@ -16,3 +16,29 @@ podman run -it --rm \
             -w /var/www/certbot \
             -d www.mikeandwan.us \
             -d mikeandwan.us
+
+podman run -it --rm \
+    --pod {{ pod }} \
+    --volume {{ dir_certbot }}:/var/www/certbot:rw,z \
+    --volume {{ dir_letsencrypt }}:/etc/letsencrypt:rw,z \
+    --volume ./certbot-init-work:/var/lib/letsencrypt:rw,z \
+    --volume ./certbot-init-logs:/var/log/letsencrypt:rw,z \
+        {{ img_certbot }} \
+            certonly \
+            --agree-tos \
+            --webroot \
+            -w /var/www/certbot \
+            -d media.mikeandwan.us
+
+podman run -it --rm \
+    --pod {{ pod }} \
+    --volume {{ dir_certbot }}:/var/www/certbot:rw,z \
+    --volume {{ dir_letsencrypt }}:/etc/letsencrypt:rw,z \
+    --volume ./certbot-init-work:/var/lib/letsencrypt:rw,z \
+    --volume ./certbot-init-logs:/var/log/letsencrypt:rw,z \
+        {{ img_certbot }} \
+            certonly \
+            --agree-tos \
+            --webroot \
+            -w /var/www/certbot \
+            -d photos.mikeandwan.us
