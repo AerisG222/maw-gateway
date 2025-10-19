@@ -63,7 +63,7 @@
         dest: "{{ item.dest }}"
         mode: u+rw
       loop:
-        - src: "{{ dir_localroot }}/certs/dh2048.pem"
+        - src: "{{ dir_localroot }}/certs/dhparam2048.pem"
           dest: "{{ dir_certs }}"
 
     - name: Copy Files for Staging (prod certs will come from certbot)
