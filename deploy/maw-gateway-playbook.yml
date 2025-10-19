@@ -142,13 +142,14 @@
         enabled: true
         state: restarted
 
-    - name: Create certbot initialization script
+    - name: Create admin scripts
       ansible.builtin.template:
         dest: "{{ dir_scripts }}/{{ item.dest }}"
         src: "{{ item.src }}"
         mode: u+rwx
       loop:
         - { "src": "certbot-init.sh.j2", "dest": "certbot-init.sh" }
+        - { "src": "logs.sh.j2", "dest": "logs.sh" }
 
     - name: Create systemd service and timer for certbot renewal job
       ansible.builtin.template:
