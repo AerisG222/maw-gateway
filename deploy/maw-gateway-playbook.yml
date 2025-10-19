@@ -93,7 +93,19 @@
         - "{{ img_maw_gateway }}"
         - "{{ img_certbot }}"
 
-    - name: Create Pod Quadlet
+    - name: Create Pod Quadlet (production)
+      containers.podman.podman_pod:
+        name: "{{ pod }}"
+        state: quadlet
+        userns: "keep-id:uid=1654"
+        ports:
+          - "80:8000"
+          - "443:8443"
+        quadlet_options:
+          - "ServiceName={{ pod }}"
+      when: mawenv == "prod"
+
+    - name: Create Pod Quadlet (staging)
       containers.podman.podman_pod:
         name: "{{ pod }}"
         state: quadlet
@@ -103,6 +115,7 @@
           - "8443:8443"
         quadlet_options:
           - "ServiceName={{ pod }}"
+      when: mawenv == "staging"
 
     - name: Create maw-gateway Quadlet
       containers.podman.podman_container:
