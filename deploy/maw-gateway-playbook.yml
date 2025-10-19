@@ -112,6 +112,9 @@
         read_only: true
         pod: "{{ pod }}.pod"
         user: 1654
+        mount:
+          - "type=tmpfs,tmpfs-size=512m,chown=true,destination=/var/cache/nginx"
+          - "type=tmpfs,tmpfs-size=16m,chown=true,destination=/var/run"
         volumes:
           - "{{ dir_certs }}:/certs:ro,Z"
           - "{{ dir_letsencrypt }}:/etc/letsencrypt:ro,z"
@@ -143,7 +146,7 @@
       ansible.builtin.template:
         dest: "{{ dir_scripts }}/{{ item.dest }}"
         src: "{{ item.src }}"
-        mode: u+rw
+        mode: u+rwx
       loop:
         - { "src": "certbot-init.sh.j2", "dest": "certbot-init.sh" }
 
