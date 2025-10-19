@@ -41,6 +41,7 @@
     dir_certbot: "{{ dir_approot }}/certbot-challenge"
     dir_systemd: "{{ dir_root }}/.config/systemd/user"
     dir_scripts: "{{ dir_approot }}/scripts"
+    dir_logs: "{{ dir_approot }}/logs"
 
   tasks:
     - name: Create Directories
@@ -54,6 +55,7 @@
         - "{{ dir_certbot }}"
         - "{{ dir_systemd }}"
         - "{{ dir_scripts }}"
+        - "{{ dir_logs }}"
 
     - name: Copy Files
       ansible.builtin.copy:
@@ -132,6 +134,7 @@
           - "{{ dir_certs }}:/certs:ro,Z"
           - "{{ dir_letsencrypt }}:/etc/letsencrypt:ro,z"
           - "{{ dir_certbot }}:/var/www/certbot:ro,z"
+          - "{{ dir_logs }}:/var/log/nginx:rw,z"
         quadlet_options:
           - "AutoUpdate=registry"
           - "Pull=newer"
