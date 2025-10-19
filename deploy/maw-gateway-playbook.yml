@@ -99,8 +99,8 @@
         state: quadlet
         userns: "keep-id:uid=1654"
         ports:
-          - "8000:80"
-          - "8443:443"
+          - "8000:8000"
+          - "8443:8443"
         quadlet_options:
           - "ServiceName={{ pod }}"
 

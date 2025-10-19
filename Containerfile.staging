@@ -13,5 +13,5 @@ COPY etc/nginx/conf.d/staging.maw-www.conf    /etc/nginx/conf.d/maw-www.conf
 
 CMD [ "nginx", "-g", "daemon off;" ]
 
-EXPOSE 80
-EXPOSE 443
+EXPOSE 8000
+EXPOSE 8443
