@@ -3,4 +3,4 @@ Description=Renew Let's Encrypt certificates for mikeandwan.us
 
 [Service]
 Type=oneshot
-ExecStart=podman run -it --rm --pod {{ pod }} --volume {{ dir_certbot }}:/var/www/certbot:rw,z --volume {{ dir_letsencrypt }}:/etc/letsencrypt:rw,z {{ img_certbot }} renew --agree-tos
+ExecStart=podman run -it --rm --pod {{ pod }} --volume {{ dir_certbot }}:/var/www/certbot:rw,z --volume {{ dir_letsencrypt }}:/etc/letsencrypt:rw,z --volume {{ dir_letsencrypt_logs }}:/var/log/letsencrypt:rw,z --volume {{ dir_letsencrypt_work }}:/var/lib/letsencrypt:rw,z {{ img_certbot }} renew --agree-tos

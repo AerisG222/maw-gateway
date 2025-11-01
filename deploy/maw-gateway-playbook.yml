@@ -42,6 +42,8 @@
     dir_systemd: "{{ dir_root }}/.config/systemd/user"
     dir_scripts: "{{ dir_approot }}/scripts"
     dir_logs: "{{ dir_approot }}/logs"
+    dir_letsencrypt_logs: "{{ dir_approot }}/letsencrypt-logs"
+    dir_letsencrypt_work: "{{ dir_approot }}/letsencrypt-work"
 
   tasks:
     - name: Create Directories
@@ -56,6 +58,8 @@
         - "{{ dir_systemd }}"
         - "{{ dir_scripts }}"
         - "{{ dir_logs }}"
+        - "{{ dir_letsencrypt_logs }}"
+        - "{{ dir_letsencrypt_work }}"
 
     - name: Copy Files
       ansible.builtin.copy:
