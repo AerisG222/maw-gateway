@@ -152,6 +152,7 @@
             WantedBy=multi-user.target default.target
 
             [Service]
+            ExecStartPre=/bin/sleep 20
             Restart=on-failure
 
     - name: Start and Enable Pod / Containers
