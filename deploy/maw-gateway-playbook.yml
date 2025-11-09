@@ -44,6 +44,8 @@
     dir_logs: "{{ dir_approot }}/logs"
     dir_letsencrypt_logs: "{{ dir_approot }}/letsencrypt-logs"
     dir_letsencrypt_work: "{{ dir_approot }}/letsencrypt-work"
+    dir_podman_secrets: "{{ dir_approot }}/podman-secrets"
+    podman_authfile: "{{dir_podman_secrets}}/auth.json"
 
   tasks:
     - name: Create Directories
@@ -60,6 +62,7 @@
         - "{{ dir_logs }}"
         - "{{ dir_letsencrypt_logs }}"
         - "{{ dir_letsencrypt_work }}"
+        - "{{ dir_podman_secrets }}"
 
     - name: Copy Files
       ansible.builtin.copy:
@@ -92,8 +95,16 @@
           dest: "{{ dir_certs }}"
       when: mawenv == "staging"
 
+    - name: Establish Login to registry
+      containers.podman.podman_login:
+        registry: docker.io
+        authfile: "{{ podman_authfile }}"
+        username: "{{ dockerhub_username }}"
+        password: "{{ dockerhub_password }}"
+
     - name: Pull Container Images
       containers.podman.podman_image:
+        authfile: "{{ podman_authfile }}"
         name: "{{ item }}"
       loop:
         - "{{ img_maw_gateway }}"
@@ -141,6 +152,7 @@
           - "{{ dir_logs }}:/var/log/nginx:rw,z"
         quadlet_options:
           - "AutoUpdate=registry"
+          - "Label=io.containers.autoupdate.authfile={{ podman_authfile }}"
           - "Pull=newer"
           - "ReadOnly=true"
           - |
