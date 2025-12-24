@@ -39,13 +39,16 @@
     dir_certs: "{{ dir_approot }}/certs"
     dir_letsencrypt: "{{ dir_approot }}/letsencrypt"
     dir_certbot: "{{ dir_approot }}/certbot-challenge"
+    dir_varcache: "{{ dir_approot }}/varcache"
+    dir_varrun: "{{ dir_approot }}/varrun"
     dir_systemd: "{{ dir_root }}/.config/systemd/user"
     dir_scripts: "{{ dir_approot }}/scripts"
     dir_logs: "{{ dir_approot }}/logs"
     dir_letsencrypt_logs: "{{ dir_approot }}/letsencrypt-logs"
     dir_letsencrypt_work: "{{ dir_approot }}/letsencrypt-work"
     dir_podman_secrets: "{{ dir_approot }}/podman-secrets"
-    podman_authfile: "{{dir_podman_secrets}}/auth.json"
+    dir_kube: "{{ dir_approot }}/kube"
+    file_kube: "{{ dir_kube }}/kube.yml"
 
   tasks:
     - name: Create Directories
@@ -63,6 +66,9 @@
         - "{{ dir_letsencrypt_logs }}"
         - "{{ dir_letsencrypt_work }}"
         - "{{ dir_podman_secrets }}"
+        - "{{ dir_kube }}"
+        - "{{ dir_varcache }}"
+        - "{{ dir_varrun }}"
 
     - name: Copy Files
       ansible.builtin.copy:
@@ -95,66 +101,25 @@
           dest: "{{ dir_certs }}"
       when: mawenv == "staging"
 
-    - name: Establish Login to registry
-      containers.podman.podman_login:
-        registry: docker.io
-        authfile: "{{ podman_authfile }}"
-        username: "{{ dockerhub_username }}"
-        password: "{{ dockerhub_password }}"
-
-    - name: Pull Container Images
-      containers.podman.podman_image:
-        authfile: "{{ podman_authfile }}"
-        name: "{{ item }}"
+    - name: Process Templates
+      ansible.builtin.template:
+        dest: "{{ item.dest }}"
+        src: "{{ item.src }}"
+        mode: u+rw
       loop:
-        - "{{ img_maw_gateway }}"
-        - "{{ img_certbot }}"
-
-    - name: Create Pod Quadlet (production)
-      containers.podman.podman_pod:
-        name: "{{ pod }}"
-        state: quadlet
-        userns: "keep-id:uid=1654"
-        ports:
-          - "80:8000"
-          - "443:8443"
-        quadlet_options:
-          - "ServiceName={{ pod }}"
-      when: mawenv == "prod"
-
-    - name: Create Pod Quadlet (staging)
-      containers.podman.podman_pod:
-        name: "{{ pod }}"
-        state: quadlet
-        userns: "keep-id:uid=1654"
-        ports:
-          - "8000:8000"
-          - "8443:8443"
-        quadlet_options:
-          - "ServiceName={{ pod }}"
-      when: mawenv == "staging"
+        - { "src": "kube.yml.j2", "dest": "{{ file_kube }}" }
 
     - name: Create maw-gateway Quadlet
-      containers.podman.podman_container:
-        name: "{{ container_gateway }}"
-        image: "{{ img_maw_gateway }}"
+      containers.podman.podman_play:
+        kube_file: "{{ file_kube }}"
         state: quadlet
-        read_only: true
-        pod: "{{ pod }}.pod"
-        user: 1654
-        mount:
-          - "type=tmpfs,tmpfs-size=512m,chown=true,destination=/var/cache/nginx"
-          - "type=tmpfs,tmpfs-size=16m,chown=true,destination=/var/run"
-        volumes:
-          - "{{ dir_certs }}:/certs:ro,Z"
-          - "{{ dir_letsencrypt }}:/etc/letsencrypt:ro,z"
-          - "{{ dir_certbot }}:/var/www/certbot:ro,z"
-          - "{{ dir_logs }}:/var/log/nginx:rw,z"
+        recreate: true
+        username: "{{ dockerhub_username }}"
+        password: "{{ dockerhub_password }}"
+        quadlet_filename: "{{ pod }}"
+        quadlet_file_mode: '0640'
         quadlet_options:
           - "AutoUpdate=registry"
-          - "Label=io.containers.autoupdate.authfile={{ podman_authfile }}"
-          - "Pull=newer"
-          - "ReadOnly=true"
           - |
 
             [Unit]
@@ -164,13 +129,12 @@
             WantedBy=multi-user.target default.target
 
             [Service]
-            ExecStartPre=/bin/sleep 20
             Restart=on-failure
 
     - name: Start and Enable Pod / Containers
       ansible.builtin.systemd_service:
         daemon_reload: true
-        name: "{{ pod }}.service"
+        name: "{{ pod }}"
         scope: user
         enabled: true
         state: restarted

@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    io.podman.annotations.userns: keep-id:uid=1654
+  labels:
+    app: {{ pod }}
+  name: {{ pod }}
+spec:
+  containers:
+    - image: {{ img_maw_gateway }}
+      imagePullPolicy: IfNotPresent
+      name: maw-gateway
+      args:
+        - _run_prod.sh
+      ports:
+        - containerPort: 8000
+          hostPort: {{ host_port_http }}
+        - containerPort: 8443
+          hostPort: {{ host_port_https }}
+      securityContext:
+        readOnlyRootFilesystem: true
+        runAsGroup: 0
+        runAsUser: 1654
+      volumeMounts:
+        - mountPath: /var/cache/nginx:Z
+          name: varcache
+        - mountPath: /var/run:Z
+          name: varrun
+        - mountPath: /var/log/nginx:z
+          name: varlog
+        - mountPath: /certs:Z
+          name: certs
+          readOnly: true
+        - mountPath: /etc/letsencrypt:z
+          name: letsencrypt
+          readOnly: true
+        - mountPath: /var/www/certbot:z
+          name: certbot
+          readOnly: true
+  volumes:
+    - hostPath:
+        path: {{ dir_varcache }}
+        type: Directory
+      name: varcache
+    - hostPath:
+        path: {{ dir_varrun }}
+        type: Directory
+      name: varrun
+    - hostPath:
+        path: {{ dir_logs }}
+        type: Directory
+      name: varlog
+    - hostPath:
+        path: {{ dir_certs }}
+        type: Directory
+      name: certs
+    - hostPath:
+        path: {{ dir_letsencrypt }}
+        type: Directory
+      name: letsencrypt
+    - hostPath:
+        path: {{ dir_certbot }}
+        type: Directory
+      name: certbot
