@@ -10,7 +10,7 @@ spec:
   containers:
     - image: {{ img_maw_gateway }}
       imagePullPolicy: IfNotPresent
-      name: maw-gateway
+      name: {{ container_gateway }}
       args:
         - _run_prod.sh
       ports:
