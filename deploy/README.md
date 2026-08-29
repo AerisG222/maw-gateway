@@ -11,6 +11,19 @@ one or more nodes. It makes a couple of key assumptions:
     2. run the apply-migration step to load data from legacy database (/tools/legacy_db_migration)
     3. set the password for the svc_maw_www db role
 
+## nginx Configuration
+
+The gateway runs the stock `nginx:alpine` image - there is no custom image to build. The
+playbook assembles the environment-specific config under `~/maw-gateway/nginx-conf` on the
+target host, and the pod mounts that directory read-only at `/etc/nginx/maw`. Config changes
+therefore ship by re-running this playbook rather than by pushing a new image.
+
+Certificate renewals are picked up by an `ExecStartPost` hook on `certbot-renew.service`,
+which sends `SIGHUP` to the gateway container after each renewal run.
+
+To check config changes before deploying, run `./validate-config.sh [staging | prod]` from
+the root of the repo.
+
 ## Control Node Setup
 
 1. Make sure python/pip are installed

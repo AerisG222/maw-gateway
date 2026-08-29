@@ -12,7 +12,14 @@ spec:
       imagePullPolicy: IfNotPresent
       name: {{ container_gateway }}
       args:
-        - _run_prod.sh
+        - nginx
+        - -c
+        - /etc/nginx/maw/nginx.conf
+        - -g
+        - daemon off;
+      env:
+        - name: NGINX_ENTRYPOINT_QUIET_LOGS
+          value: "1"
       ports:
         - containerPort: 8000
           hostPort: {{ host_port_http }}
@@ -23,6 +30,9 @@ spec:
         runAsGroup: 0
         runAsUser: 1654
       volumeMounts:
+        - mountPath: /etc/nginx/maw:Z
+          name: nginxconf
+          readOnly: true
         - mountPath: /var/cache/nginx:Z
           name: varcache
         - mountPath: /var/run:Z
@@ -39,6 +49,10 @@ spec:
           name: certbot
           readOnly: true
   volumes:
+    - hostPath:
+        path: {{ dir_conf }}
+        type: Directory
+      name: nginxconf
     - hostPath:
         path: {{ dir_varcache }}
         type: Directory

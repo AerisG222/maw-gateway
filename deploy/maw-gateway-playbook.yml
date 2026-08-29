@@ -30,7 +30,7 @@
   become_user: "{{ svcacct_name }}"
   vars:
     pod: pod-maw-gateway
-    img_maw_gateway: "docker.io/aerisg222/maw-gateway:latest"
+    img_maw_gateway: "docker.io/library/nginx:alpine"
     img_certbot: "docker.io/certbot/certbot:amd64-latest"
     container_gateway: maw-gateway
     dir_localroot: "{{ lookup('env', 'HOME') }}/maw-gateway/{{ mawenv }}"
@@ -48,6 +48,7 @@
     dir_letsencrypt_work: "{{ dir_approot }}/letsencrypt-work"
     dir_podman_secrets: "{{ dir_approot }}/podman-secrets"
     dir_kube: "{{ dir_approot }}/kube"
+    dir_conf: "{{ dir_approot }}/nginx-conf"
     file_kube: "{{ dir_kube }}/kube.yml"
 
   tasks:
@@ -67,6 +68,7 @@
         - "{{ dir_letsencrypt_work }}"
         - "{{ dir_podman_secrets }}"
         - "{{ dir_kube }}"
+        - "{{ dir_conf }}/conf.d"
         - "{{ dir_varcache }}"
         - "{{ dir_varrun }}"
 
@@ -100,6 +102,35 @@
         - src: "{{ dir_localroot }}/certs/maw-www.key"
           dest: "{{ dir_certs }}"
       when: mawenv == "staging"
+
+    # this assembly is mirrored by stage-config.sh at the root of the repo,
+    # which is used for local staging runs and CI config validation
+    - name: Stage Shared nginx Config
+      ansible.builtin.copy:
+        src: "../etc/nginx/{{ item }}"
+        dest: "{{ dir_conf }}/{{ item }}"
+        mode: u+rw
+      loop:
+        - nginx.conf
+        - tls.conf
+        - compression.conf
+        - cache-file-descriptors.conf
+
+    - name: Stage Environment Proxy Config
+      ansible.builtin.copy:
+        src: "../etc/nginx/{{ mawenv }}.proxy.conf"
+        dest: "{{ dir_conf }}/proxy.conf"
+        mode: u+rw
+
+    - name: Stage Environment Site Config
+      ansible.builtin.copy:
+        src: "../etc/nginx/conf.d/{{ mawenv }}.{{ item }}.conf"
+        dest: "{{ dir_conf }}/conf.d/{{ item }}.conf"
+        mode: u+rw
+      loop:
+        - maw-media
+        - maw-photos
+        - maw-www
 
     - name: Process Templates
       ansible.builtin.template:

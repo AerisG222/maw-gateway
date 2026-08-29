@@ -4,16 +4,18 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
+  pull_request:
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
+    strategy:
+      matrix:
+        mawenv: [ staging, prod ]
 
-    - name: build container
-      run: ./_prod_build_and_push.sh
-      env:
-        DH_USER: ${{ secrets.DH_USER }}
-        DH_PASS: ${{ secrets.DH_PASS }}
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: validate nginx config
+      run: ./validate-config.sh ${{ matrix.mawenv }}
